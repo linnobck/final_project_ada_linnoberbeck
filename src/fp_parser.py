@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-df = pd.read_csv("/Users/linnoberbeck/Documents/UChicagoMasters/ADA/final_project_ada/raw_cast_data.csv", dtype=str)
+df = pd.read_csv("/Users/linnoberbeck/Documents/UChicagoMasters/ADA/final_project_ada/src/raw_cast_data_v2.csv", dtype=str)
 
 print(f"Loaded {len(df)} rows across {df['title'].nunique()} titles")
 
@@ -22,8 +22,8 @@ df["title"] = df["title"].str.replace(r"\s+", " ", regex=True)
 # To numeric
 df["billing_order"] = pd.to_numeric(df["billing_order"], errors="coerce")
 df["actor_gender_code"] = pd.to_numeric(df["actor_gender_code"], errors="coerce")
-df["start_year"] = pd.to_numeric(df["start_year"], errors="coerce")
-df["end_year"] = pd.to_numeric(df["end_year"], errors="coerce")
+df["start_year"] = pd.to_numeric(df["start_year"], errors="coerce").astype("Int64")
+df["end_year"] = pd.to_numeric(df["end_year"], errors="coerce").astype("Int64")
 
 
 # Code to gender
@@ -45,7 +45,6 @@ df.drop(columns=["prominence_score_raw"], inplace=True)
 # Flag characters like "Cop", "Mover", "Pedestrian (uncredited)"
 generic_patterns = [
     r"\(uncredited\)",
-    r"\(voice\)$", # voice with no context
     r"^(?:cop|guard|man|woman|soldier|pedestrian|worker|officer|extra|background)$",
 ]
 combined_pattern = "|".join(generic_patterns)
@@ -62,36 +61,33 @@ df["production_span"] = (df["end_year"] - df["start_year"] + 1).clip(lower=1)
 
 column_order = [
     # Title-level
-    "title", "start_year", "end_year", "production_span", "genres", "media_type",
+    "title", "start_year", "end_year", "production_span", "genres", "tmdb_id", "media_type",
 
     # Actor-level
     "actor_name", "actor_tmdb_id", "actor_gender_code", "actor_gender",
-    "actor_ethnicity",        # manual
-    "actor_sexuality",        # manual
+    "actor_ethnicity",        # OpenAI annotation
     "actor_age_at_release",   # manual
 
     # Character-level
     "character_name", "is_named_character",
     "character_gender",       # manual
     "character_ethnicity",    # manual
-    "character_sexuality",    # manual
 
-    # Mismatch flags (manual/derived later)
+    # Mismatch flags
     "gender_mismatch",
     "ethnicity_mismatch",
-    "sexuality_mismatch",
 
     # Role data
     "billing_order", "role_type", "prominence_score",
 
-    # Qualitative (manual, Week 7)
+    # Qualitative (Week 7)
     "sympathy_coding", "arc_quality",
 ]
 
 df = df[column_order]
 
 
-output_path = "parsed_data.csv"
+output_path = "parsed_cast_data_v2.csv"
 df.to_csv(output_path, index=False)
 
 
@@ -112,5 +108,9 @@ print(df.groupby(["role_type", "actor_gender"]).size().unstack(fill_value=0).to_
 
 print("\nTitles in dataset")
 for title, group in df.groupby("title"):
-    years = f"{int(group['start_year'].iloc[0])}–{int(group['end_year'].iloc[0])}"
+    start = group['start_year'].iloc[0]
+    end = group['end_year'].iloc[0]
+    start_str = str(int(start)) if pd.notna(start) else "?"
+    end_str = str(int(end)) if pd.notna(end) else "2026"
+    years = f"{start_str}–{end_str}"    
     print(f"  {title} ({years}) — {len(group)} cast members")

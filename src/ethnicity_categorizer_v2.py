@@ -3,10 +3,10 @@ from openai import OpenAI
 import json
 import time
  
+START_FROM = 5000
+BATCH_SIZE = 1000
  
-INPUT_FILE  = "parsed_data.csv"
-ACTORS_FILE = "actors_annotated.csv"
-OUTPUT_FILE = "parsed_data_annotated.csv"
+INPUT_FILE = "parsed_cast_data_v2.csv"
  
 VALID_CATEGORIES = [
     "White", "Black", "Hispanic/Latino", "East Asian",
@@ -14,7 +14,6 @@ VALID_CATEGORIES = [
 ]
  
 client = OpenAI()
-
  
 df = pd.read_csv(INPUT_FILE, dtype=str)
 unique_actors = (
@@ -22,15 +21,20 @@ unique_actors = (
     .drop_duplicates()
     .reset_index(drop=True)
 )
-print(f"Found {len(unique_actors)} unique actors to annotate")
+print(f"Found {len(unique_actors)} unique actors total")
  
-  
+batch = unique_actors.iloc[START_FROM : START_FROM + BATCH_SIZE]
+print(f"Processing rows {START_FROM} to {START_FROM + len(batch) - 1}")
+ 
+ACTORS_FILE = f"actors_ethnicity_{START_FROM}_{START_FROM + BATCH_SIZE}.csv"
+ 
 def annotate_actor(actor_name: str) -> dict:
     prompt = f"""You are helping with an academic research project on media representation.
  
 For the actor '{actor_name}', provide:
 1. Their ethnicity from EXACTLY one of these categories:
    White, Black, Hispanic/Latino, East Asian, South Asian, Middle Eastern, Mixed/Multiracial, Unknown
+   If you would say Unknown but have a low or medium confidence but then think they look White, classify as White.
  
 2. Your confidence level: high, medium, or low
    - high: this actor is well-known and their ethnicity is publicly documented
@@ -66,47 +70,23 @@ Respond ONLY with valid JSON in this exact format, nothing else:
         return {"ethnicity": "Unknown", "confidence": "low", "reasoning": f"API error: {str(e)}"}
  
  
-# Run annotation loop 
 results = []
-for i, row in unique_actors.iterrows():
+for i, row in batch.iterrows():
     actor_name = row["actor_name"]
     print(f"[{i+1}/{len(unique_actors)}] {actor_name}...", end=" ", flush=True)
  
     result = annotate_actor(actor_name)
     results.append({
-        "actor_name":      actor_name,
-        "actor_tmdb_id":   row["actor_tmdb_id"],
+        "actor_name": actor_name,
+        "actor_tmdb_id": row["actor_tmdb_id"],
         "actor_ethnicity": result["ethnicity"],
-        "confidence":      result["confidence"],
-        "reasoning":       result["reasoning"],
+        "confidence": result["confidence"],
+        "reasoning": result["reasoning"],
     })
     print(f"{result['ethnicity']} ({result['confidence']})")
     time.sleep(0.2)
  
- 
-# save in file 
 actors_df = pd.DataFrame(results)
 actors_df.to_csv(ACTORS_FILE, index=False)
- 
-print(f"\nSaved actor annotations to {ACTORS_FILE}")
-print("\nConfidence breakdown")
-print(actors_df["confidence"].value_counts().to_string())
-print("\nEthnicity breakdown")
-print(actors_df["actor_ethnicity"].value_counts().to_string())
- 
-flagged = actors_df[actors_df["confidence"] != "high"]
-print(f"\n{len(flagged)} actors flagged for manual review")
-print(flagged[["actor_name", "actor_ethnicity", "confidence", "reasoning"]].to_string())
- 
- 
-# Merge back to main dataset 
-df = df.drop(columns=["actor_ethnicity"])
-df = df.merge(
-    actors_df[["actor_tmdb_id", "actor_ethnicity", "confidence"]],
-    on="actor_tmdb_id",
-    how="left"
-)
- 
-df.to_csv(OUTPUT_FILE, index=False)
-print(f"\nFull annotated dataset saved to {OUTPUT_FILE}")
-print("Review flagged rows in actors_annotated.csv before using for analysis.")
+print(f"\nBatch saved to {ACTORS_FILE}")
+print(f"Next batch: set START_FROM = {START_FROM + BATCH_SIZE}")
