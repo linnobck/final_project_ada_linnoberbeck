@@ -6485,7 +6485,7 @@ Dallas,1978,1991,14,Soap|Drama|Family,40,tv,Ken Kercheval,41350,2,male,,Cliff Ba
 Mannix,1967,1975,9,Action & Adventure|Crime|Mystery|Drama,2813,tv,Mike Connors,29718,2,male,,Joe Mannix,True,1,lead,0.5128,White,high,protagonist,significant,positive,high
 Mannix,1967,1975,9,Action & Adventure|Crime|Mystery|Drama,2813,tv,Gail Fisher,160326,1,female,,Peggy Fair,True,2,lead,0.2564,Black,high,protagonist,minor,positive,medium
 Mannix,1967,1975,9,Action & Adventure|Crime|Mystery|Drama,2813,tv,Larry Storch,151644,2,male,,Wing Dobson,True,4,supporting,0.1282,White,high,neutral,flat,none,low
-Mannix,1967,1975,9,Action & Adventure|Crime|Mystery|Drama,2813,tv,Robyn Millan,5490901,0,Female,,Susan McAndrew,True,5,supporting,0.1026,White,high,neutral,flat,none,low
+Mannix,1967,1975,9,Action & Adventure|Crime|Mystery|Drama,2813,tv,Robyn Millan,5490901,0,female,,Susan McAndrew,True,5,supporting,0.1026,White,high,neutral,flat,none,low
 Bonanza,1959,1973,15,Western|Action & Adventure|Drama|Family,1018,tv,Lorne Greene,40181,2,male,,Ben Cartwright,True,1,lead,0.5683,White,high,protagonist,significant,positive,high
 Bonanza,1959,1973,15,Western|Action & Adventure|Drama|Family,1018,tv,Michael Landon,116771,2,male,,Joe Cartwright,True,4,supporting,0.1421,White,high,protagonist,significant,positive,high
 Bonanza,1959,1973,15,Western|Action & Adventure|Drama|Family,1018,tv,David Canary,160899,2,male,,Candy Canaday,True,5,supporting,0.1137,White,high,neutral,flat,none,low
