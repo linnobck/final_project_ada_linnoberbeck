@@ -1,3 +1,6 @@
+*To view dashboard open: https://finalprojectadalinnoberbeck.streamlit.app/*
+
+
 ## Representation Analysis in Media (Gender & Race)
 This one would be my preferred project!
 
