@@ -1,4 +1,4 @@
-To view dashboard open: https://finalprojectadalinnoberbeck.streamlit.app/
+*To view dashboard open: https://finalprojectadalinnoberbeck.streamlit.app/*
 
 
 ## Representation Analysis in Media (Gender & Race)
