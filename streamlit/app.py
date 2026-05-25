@@ -5,12 +5,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 from scipy import stats
 from statsmodels.stats.multitest import multipletests
+import os
 
 st.set_page_config(page_title="Media Representation Dashboard", layout="wide")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("encoded_annotated_final.csv", dtype=str)
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "encoded_annotated_final.csv"), dtype=str)
     df["billing_order"] = pd.to_numeric(df["billing_order"], errors="coerce")
     df["prominence_score"] = pd.to_numeric(df["prominence_score"], errors="coerce")
     df["start_year"] = pd.to_numeric(df["start_year"], errors="coerce")
