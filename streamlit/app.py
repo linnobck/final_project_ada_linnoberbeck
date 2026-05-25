@@ -81,6 +81,21 @@ with tab1:
     col4.metric("% Non-white", f"{(filtered['ethnicity_simple'] == 'Non-white').mean()*100:.1f}%")
 
     st.divider()
+    pct_female = (filtered["actor_gender"] == "female").mean() * 100
+    pct_nonwhite = (filtered["ethnicity_simple"] == "Non-white").mean() * 100
+    pct_female_leads = (filtered[filtered["role_type"] == "lead"]["actor_gender"] == "female").mean() * 100
+    pct_nonwhite_leads = (filtered[filtered["role_type"] == "lead"]["ethnicity_simple"] == "Non-white").mean() * 100
+    avg_prom_female = filtered[filtered["actor_gender"] == "female"]["prominence_score"].mean()
+    avg_prom_white = filtered[filtered["ethnicity_simple"] == "White"]["prominence_score"].mean()
+    avg_prom_nonwhite = filtered[filtered["ethnicity_simple"] == "Non-white"]["prominence_score"].mean()
+
+    st.markdown("**Key findings for current selection**")
+    st.markdown(f"- **{pct_female:.1f}%** of cast members are female,  **{pct_female_leads:.1f}%** of leads are female")
+    st.markdown(f"- **{pct_nonwhite:.1f}%** of cast members are non-white,  **{pct_nonwhite_leads:.1f}%** of leads are non-white")
+    st.markdown(f"- Average prominence score: white actors **{avg_prom_white:.4f}** vs non-white actors **{avg_prom_nonwhite:.4f}**")
+    st.markdown(f"- Female actors have an average prominence score of **{avg_prom_female:.4f}**")
+    st.divider()
+
 
     # chart selector
     chart = st.selectbox("What do you want to explore?", [
@@ -198,8 +213,8 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
 
     elif chart == "Gender by genre":
-        genre_gender = filtered.groupby("genre_primary").apply(
-            lambda x: (x["actor_gender"] == "female").mean() * 100 if len(x) >= 10 else None
+        genre_gender = filtered.groupby("genre_primary").apply( # type: ignore
+            lambda x: (x["actor_gender"] == "female").mean() * 100 if len(x) >= 10 else None # type: ignore
         ).dropna().reset_index()
         genre_gender.columns = ["genre", "pct_female"]
         genre_gender = genre_gender.sort_values("pct_female")
@@ -211,8 +226,8 @@ with tab1:
 
     elif chart == "Ethnicity by genre":
         genre_eth = filtered.groupby("genre_primary").apply(
-            lambda x: (x["ethnicity_simple"] == "Non-white").mean() * 100 if len(x) >= 10 else None
-        ).dropna().reset_index()
+            lambda x: (x["ethnicity_simple"] == "Non-white").mean() * 100 if len(x) >= 10 else None  # type: ignore
+        ).dropna().reset_index() # type: ignore
         genre_eth.columns = ["genre", "pct_nonwhite"]
         genre_eth = genre_eth.sort_values("pct_nonwhite")
         fig = px.bar(genre_eth, x="pct_nonwhite", y="genre", orientation="h",
@@ -286,6 +301,17 @@ with tab1:
         else:
             st.info("Arc data not yet available in this dataset.")
 
+    st.divider()
+    with st.expander("Titles in current selection"):
+        title_summary = filtered.groupby(["title", "start_year", "media_type"]).apply(
+            lambda x: pd.Series({
+                "% female": f"{(x['actor_gender'] == 'female').mean()*100:.1f}%",
+                "% non-white": f"{(x['ethnicity_simple'] == 'Non-white').mean()*100:.1f}%",
+                "cast size": len(x)
+            })
+        ).reset_index().sort_values("start_year")
+        st.dataframe(title_summary, use_container_width=True, hide_index=True)
+
 
 with tab2:
     st.subheader("Statistical tests")
@@ -300,10 +326,10 @@ with tab2:
 
     def add_test(name, a, b, tests, anova=False):
         if anova:
-            _, p = stats.f_oneway(*a)
+            _, p = stats.f_oneway(*a)  # type: ignore
             d, comp = None, "ANOVA"
         else:
-            _, p = stats.ttest_ind(a, b)
+            _, p = stats.ttest_ind(a, b)  # type: ignore
             d = abs(cohens_d(a, b))
             comp = f"{a.mean()*100:.1f}% vs {b.mean()*100:.1f}%" if a.max() <= 1 else f"{a.mean():.4f} vs {b.mean():.4f}"
         tests.append((name, p, d, comp))
